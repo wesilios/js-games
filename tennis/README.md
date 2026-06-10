@@ -4,7 +4,7 @@ A lightweight, pixel-perfect arcade tennis game built with raw vanilla JavaScrip
 development workflow features blazing-fast live feedback loops using Vite's Hot Module Replacement (HMR) API to update
 internal math parameters without losing current match scores or states.
 
-![Canvas Tennis Banner](hero.png)
+![Canvas Tennis Banner](/public/hero.png)
 
 ## ⚡ Tech Stack & Tools
 
