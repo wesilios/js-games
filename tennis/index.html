@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas Tennis Engine</title>
+    <link rel="icon" type="image/x-icon" href="/public/favicon.svg" />
+  </head>
+  <body>
+    <main class="game-container">
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </main>
+
+    <section class="game-details">
+      <div class="hero-header">
+        <img src="/src/assets/hero.png" alt="Canvas Tennis Hero Logo" class="hero-banner" />
+        <h1>Canvas Tennis</h1>
+        <p class="tagline">An arcade classic rebuilt with vanilla web tools and reactive state injection.</p>
+      </div>
+
+      <div class="description-body">
+        <h2>About the Game</h2>
+        <p>
+          Experience local 2-player competitive action or test your reflexes against a custom tracking AI opponent.
+          Built entirely on the HTML5 2D rendering pipeline using pixel-perfect collision boundaries, dynamic velocity
+          vectors, and smart positioning clamps.
+        </p>
+      </div>
+
+      <footer class="tech-sponsors">
+        <p class="sponsor-title">Powered By</p>
+        <div class="sponsor-logos">
+          <div class="sponsor-item">
+            <img src="/src/assets/javascript.svg" alt="JavaScript Logo" title="Vanilla ECMAScript Engine" />
+            <span>JavaScript</span>
+          </div>
+          <div class="sponsor-item">
+            <img src="/src/assets/vite.svg" alt="Vite Dev Server Logo" title="Lightning-fast HMR Suite" />
+            <span>Vite Engine</span>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
