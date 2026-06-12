@@ -40,6 +40,19 @@ Details: [README](/tennis/README.md)
 
 Details: [README](/snake/README.md)
 
+3 🧱 Canvas Brick Breaker (/brick_breaker) A classic arcade breakout game
+
+- **2D Matrix Brick Layouts:** Bricks are initialized into a nested column-and-row array matrix. Each block instance
+  tracks its structural boundaries and visibility parameters: `{ x, y, width, height, active: true }`.
+- **Axis-Aligned Bounding Box (AABB) Collisions:** The update routine runs collision passes against all active bricks.
+  If an interception occurs, the ball isolates the closest collision axis to toggle the block off and invert the correct
+  directional physics vectors.
+- **Dynamic Paddle Surface Deflection:** Similar to the Canvas Tennis engine, bouncing the ball off the outer edges of
+  the paddle platform shifts the horizontal velocity components, allowing players to slice shots at sharp angles across
+  the screen grid.
+
+Details: [README](/brick_breaker/README.md)
+
 ## Adding New Games
 
 To add a new game to this collection:
