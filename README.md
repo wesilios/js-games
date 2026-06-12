@@ -29,6 +29,17 @@ Vite.
 
 Details: [README](/tennis/README.md)
 
+2. 🐍 Canvas Snake arcade (/snake) A grid-locked, retro arcade classic
+
+- **Matrix Grid System:** Core logic maps coordinates out to a structured grid based on `tileCount` rules, preventing
+  the game state from relying on floating-point canvas coordinates.
+- **Self-Collision Array Tracking:** The snake's trailing tail is managed via a coordinate array. Moving into any active
+  coordinate sector triggers a clean game-over state.
+- **Counter-Movement Control Guards:** Keyboard listeners include guard logic that blocks immediate 180-degree
+  turnarounds (e.g., trying to shift Left while actively crawling Right), preventing accidental self-eating.
+
+Details: [README](/snake/README.md)
+
 ## Adding New Games
 
 To add a new game to this collection:
