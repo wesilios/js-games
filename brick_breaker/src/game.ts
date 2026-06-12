@@ -1,15 +1,53 @@
-const PADDLE_WIDTH = 100;
-const PADDLE_HEIGHT = 10;
-const BALL_RADIUS = 10;
-const BRICK_RADIUS = 10;
-const status = {
+/**
+ * ============================================================================
+ * TYPE DEFINITIONS & CONTRASTS
+ * ============================================================================
+ */
+
+export interface BrickCell {
+  x: number;
+  y: number;
+  active: boolean;
+}
+
+export interface BrickConfig {
+  height: number;
+  width: number;
+  padding: number;
+  topOffset: number;
+  leftOffset: number;
+  rows: number;
+  cols: number;
+}
+
+export const GameStatus = {
   notStart: 0,
   starting: 1,
   started: 2,
   ended: 3,
-};
+} as const;
 
-export let state = {
+export type GameStatusType = (typeof GameStatus)[keyof typeof GameStatus];
+
+export interface GameState {
+  ballX: number;
+  ballY: number;
+  ballSpeedX: number;
+  ballSpeedY: number;
+  paddleX: number;
+  paddleY: number;
+  bricks: BrickCell[][];
+  status: GameStatusType;
+  countdownNumber: number;
+  time: number;
+  score: number;
+  lives: number;
+}
+const PADDLE_WIDTH = 100;
+const PADDLE_HEIGHT = 10;
+const BALL_RADIUS = 10;
+
+export let state: GameState = {
   ballX: 400,
   ballY: 575,
   ballSpeedX: 4,
@@ -17,17 +55,17 @@ export let state = {
   paddleX: 350,
   paddleY: 585,
   bricks: [],
-  status: status.notStart, // 0: not start, 1: starting, 2: started, 3: ended
+  status: GameStatus.notStart,
   countdownNumber: 0,
   time: 0,
   score: 0,
   lives: 3,
 };
 
-let canvas;
-let canvasContext;
-let animationFrameId;
-let countdownIntervalId;
+let canvas: HTMLCanvasElement | null = null;
+let canvasContext: CanvasRenderingContext2D | null = null;
+let animationFrameId: number;
+let countdownIntervalId: any; // Using standard interval timers
 
 /**
  * ============================================================================
@@ -39,22 +77,22 @@ let countdownIntervalId;
  * Triggers a 5-second ticking countdown before releasing the ball into play.
  */
 
-const startCountDown = () => {
-  state.status = status.starting;
+const startCountDown = (): void => {
+  state.status = GameStatus.starting;
   state.countdownNumber = 3;
 
   clearInterval(countdownIntervalId);
 
-  countdownIntervalId = setInterval(() => {
+  countdownIntervalId = setInterval((): void => {
     state.countdownNumber--;
     if (state.countdownNumber <= 0) {
       clearInterval(countdownIntervalId);
-      state.status = status.started;
+      state.status = GameStatus.started;
     }
   }, 1000);
 };
 
-const brickConfiguration = {
+const brickConfiguration: BrickConfig = {
   height: 20,
   width: 80,
   rows: 0,
@@ -70,7 +108,7 @@ const brickConfiguration = {
  * @param {Object} config - Your brickConfiguration object
  * @returns {Object} { cols: number, rows: number }
  */
-const calculateMaxGridDimensions = (canvasObj, config) => {
+const calculateMaxGridDimensions = (canvasObj: HTMLCanvasElement, config: BrickConfig): void => {
   // Available horizontal space math:
   // Total Width = (cols * brickWidth) + ((cols - 1) * padding) + leftOffset + rightOffset
   // Let's assume symmetric margins for safety (leftOffset on both sides)
@@ -92,7 +130,7 @@ const calculateMaxGridDimensions = (canvasObj, config) => {
   };
 };
 
-const createBrickGrid = () => {
+const createBrickGrid = (): void => {
   state.bricks = [];
   for (let c = 0; c < brickConfiguration.cols; c++) {
     state.bricks[c] = [];
@@ -109,16 +147,16 @@ const createBrickGrid = () => {
   }
 };
 
-const resetBallOnPaddle = () => {
+const resetBallOnPaddle = (): void => {
   state.ballX = state.paddleX + PADDLE_WIDTH / 2;
   state.ballY = state.paddleY - BALL_RADIUS - 2;
   state.ballSpeedY = -4; // Reset moving upward
   state.ballSpeedX = Math.random() * 4 - 2; // Slight random angle variation
 };
 
-const drawBall = () => {
+const drawBall = (): void => {
   // Only draw the ball if the game has explicitly begun
-  if (state.status !== status.started) return;
+  if (state.status !== GameStatus.started) return;
 
   canvasContext.fillStyle = '#ffff00';
   canvasContext.beginPath();
@@ -126,7 +164,7 @@ const drawBall = () => {
   canvasContext.fill();
 };
 
-const drawScoreBoard = () => {
+const drawScoreBoard = (): void => {
   canvasContext.fillStyle = '#ff00ff'; // Vibrant pink/magenta color for visibility
   canvasContext.font = 'bold 12px monospace';
   canvasContext.textAlign = 'left';
@@ -135,8 +173,8 @@ const drawScoreBoard = () => {
   canvasContext.textAlign = 'left';
 };
 
-const drawStartScreen = () => {
-  if (state.status === status.starting || state.status === status.started) return;
+const drawStartScreen = (): void => {
+  if (state.status === GameStatus.starting || state.status === GameStatus.started) return;
 
   // Dim the background background slightly
   canvasContext.fillStyle = 'rgba(0, 0, 0, 0.75)';
@@ -144,7 +182,7 @@ const drawStartScreen = () => {
 
   canvasContext.textAlign = 'center';
 
-  if (state.status === status.ended) {
+  if (state.status === GameStatus.ended) {
     // Game Over / Winning Screen Header
     canvasContext.fillStyle = '#ff00ff';
     canvasContext.font = 'bold 48px monospace';
@@ -172,8 +210,8 @@ const drawStartScreen = () => {
 /**
  * Renders the active countdown text overlay in the center court window.
  */
-const drawCountdown = () => {
-  if (state.status !== status.starting || state.countdownNumber <= 0) return;
+const drawCountdown = (): void => {
+  if (state.status !== GameStatus.starting || state.countdownNumber <= 0) return;
 
   canvasContext.fillStyle = '#ff00ff'; // Vibrant pink/magenta color for visibility
   canvasContext.font = 'bold 20px monospace';
@@ -183,7 +221,7 @@ const drawCountdown = () => {
   canvasContext.textAlign = 'left';
 };
 
-const drawBricks = () => {
+const drawBricks = (): void => {
   for (let c = 0; c < state.bricks.length; c++) {
     for (let r = 0; r < state.bricks[c].length; r++) {
       const brick = state.bricks[c][r];
@@ -201,7 +239,7 @@ const drawBricks = () => {
   }
 };
 
-const draw = () => {
+const draw = (): void => {
   canvasContext.fillStyle = '#111';
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -217,8 +255,8 @@ const draw = () => {
   drawStartScreen();
 };
 
-const updateLogic = () => {
-  if (state.status !== status.started) return;
+const updateLogic = (): void => {
+  if (state.status !== GameStatus.started) return;
 
   state.ballX += state.ballSpeedX;
   state.ballY += state.ballSpeedY;
@@ -280,12 +318,12 @@ const updateLogic = () => {
 
   // Win condition trigger if all grid layers are broken
   if (!activeBricksLeft) {
-    state.status = status.ended;
+    state.status = GameStatus.ended;
     return;
   }
 };
 
-const gameLoop = () => {
+const gameLoop = (): void => {
   updateLogic();
   draw();
   animationFrameId = requestAnimationFrame(gameLoop);
@@ -295,7 +333,7 @@ const gameLoop = () => {
  * Game Controller
  */
 
-const trachMousePosition = (event) => {
+const trachMousePosition = (event): void => {
   const rect = canvas.getBoundingClientRect();
   const root = document.documentElement;
   return {
@@ -304,10 +342,10 @@ const trachMousePosition = (event) => {
   };
 };
 const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
-const handleMouseMove = (event) => {
-  if (state.status !== status.started) return;
-  const mousePoistion = trachMousePosition(event);
+const handleMouseMove = (event: MouseEvent): void => {
+  if (state.status !== GameStatus.started || !canvas) return;
 
+  const mousePoistion = trachMousePosition(event);
   const targetX = mousePoistion.x - PADDLE_WIDTH / 2;
 
   const minLimit = 0;
@@ -316,11 +354,11 @@ const handleMouseMove = (event) => {
   state.paddleX = clamp(targetX, minLimit, maxLimit);
 };
 
-const handleCanvasClick = (event) => {
-  if (state.status === status.starting || state.status === status.started) return;
+const handleCanvasClick = (event: MouseEvent): void => {
+  if (state.status === GameStatus.starting || state.status === GameStatus.started) return;
 
   // If starting from scratch or resetting a Game Over screen
-  if (state.status === status.notStart || state.status === status.ended) {
+  if (state.status === GameStatus.notStart || state.status === GameStatus.ended) {
     state.score = 0;
     state.lives = 3;
     createBrickGrid();
@@ -330,7 +368,7 @@ const handleCanvasClick = (event) => {
   startCountDown();
 };
 
-export const hotUpdate = (oldState) => {
+export const hotUpdate = (oldState: GameState): void => {
   if (oldState) {
     state = oldState;
   }
@@ -346,7 +384,7 @@ export const hotUpdate = (oldState) => {
   init();
 };
 
-export const init = () => {
+export const init = (): void => {
   canvas = document.getElementById('gameCanvas');
   canvasContext = canvas.getContext('2d');
 

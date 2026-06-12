@@ -4,11 +4,30 @@
  * ============================================================================
  */
 
-const PADDLE_WIDTH = 10;
-const PADDLE_HEIGHT = 100;
-const BALL_RADIUS = 10;
-const SCORING_DELAY_MS = 1500; // 1.5-second pause after a goal
-const WINNING_SCORE = 3;
+const PADDLE_WIDTH: number = 10;
+const PADDLE_HEIGHT: number = 100;
+const BALL_RADIUS: number = 10;
+const SCORING_DELAY_MS: number = 1500; // 1.5-second pause after a goal
+const WINNING_SCORE: number = 3;
+
+export interface PlayerType {
+  y: number;
+  score: number;
+}
+
+export interface GameState {
+  ballX: number;
+  ballY: number;
+  ballSpeedX: number;
+  ballSpeedY: number;
+  playerOne: PlayerType;
+  playerTwo: PlayerType;
+  isGameStarted: boolean;
+  isDelayActive: boolean;
+  countdownNumber: boolean;
+  winner: number | null;
+  isPlayerTwoAI: boolean;
+}
 
 export let state = {
   ballX: 400,
@@ -31,10 +50,10 @@ export let state = {
   isPlayerTwoAI: true,
 };
 
-let canvasContext;
-let canvas;
-let animationFrameId;
-let countdownIntervalId;
+let canvas: HTMLCanvasElement | null = null;
+let canvasContext: CanvasRenderingContext2D | null = null;
+let animationFrameId: number;
+let countdownIntervalId: any; // Using standard interval timers
 
 /**
  * ============================================================================
@@ -46,13 +65,13 @@ let countdownIntervalId;
  * Triggers a 5-second ticking countdown before releasing the ball into play.
  */
 
-const startCountDown = () => {
+const startCountDown = (): void => {
   state.isDelayActive = true;
   state.countdownNumber = 3;
 
   clearInterval(countdownIntervalId);
 
-  countdownIntervalId = setInterval(() => {
+  countdownIntervalId = setInterval((): void => {
     state.countdownNumber--;
     if (state.countdownNumber <= 0) {
       clearInterval(countdownIntervalId);
@@ -64,7 +83,7 @@ const startCountDown = () => {
 /**
  * Resets the ball to the center and pauses the game briefly before releasing it.
  */
-const ballReset = () => {
+const ballReset = (): void => {
   state.ballX = canvas.width / 2;
   state.ballY = canvas.height / 2;
 
@@ -82,7 +101,7 @@ const ballReset = () => {
 /**
  * Simple tracking AI that moves Player Two's paddle toward the ball's vertical alignment.
  */
-const runComputerAI = () => {
+const runComputerAI = (): void => {
   if (!state.isPlayerTwoAI) return;
 
   const paddleCenterY = state.playerTwo.y + PADDLE_HEIGHT / 2;
@@ -105,7 +124,7 @@ const runComputerAI = () => {
 /**
  * Executes the core game physics, collision tracking, and score updates.
  */
-const updateLogic = () => {
+const updateLogic = (): void => {
   // Freeze ball physics if the game hasn't started or we are in a post-score delay
   if (!state.isGameStarted || state.isDelayActive) {
     return;
@@ -175,12 +194,12 @@ const updateLogic = () => {
  * ============================================================================
  */
 
-const drawPaddle = (x, y) => {
+const drawPaddle = (x: number, y: number) => {
   canvasContext.fillStyle = '#fff';
   canvasContext.fillRect(x, y, PADDLE_WIDTH, PADDLE_HEIGHT);
 };
 
-const drawNet = () => {
+const drawNet = (): void => {
   canvasContext.strokeStyle = '#fff';
   canvasContext.setLineDash([10, 10]);
   canvasContext.beginPath();
@@ -189,7 +208,7 @@ const drawNet = () => {
   canvasContext.stroke();
 };
 
-const drawBall = () => {
+const drawBall = (): void => {
   // Only draw the ball if the game has explicitly begun
   if (!state.isGameStarted) return;
 
@@ -199,7 +218,7 @@ const drawBall = () => {
   canvasContext.fill();
 };
 
-const drawScore = () => {
+const drawScore = (): void => {
   canvasContext.fillStyle = '#fff';
   canvasContext.font = '18px monospace';
   canvasContext.fillText(`${state.playerOne.score}`, canvas.width / 4, 50);
@@ -209,7 +228,7 @@ const drawScore = () => {
 /**
  * Renders the Start Overlay text and button box on the center screen.
  */
-const drawStartScreen = () => {
+const drawStartScreen = (): void => {
   if (state.isGameStarted) return;
 
   // Dim the background background slightly
@@ -260,7 +279,7 @@ const drawStartScreen = () => {
 /**
  * Renders the active countdown text overlay in the center court window.
  */
-const drawCountdown = () => {
+const drawCountdown = (): void => {
   if (!state.isDelayActive || state.countdownNumber <= 0) return;
 
   canvasContext.fillStyle = '#ff00ff'; // Vibrant pink/magenta color for visibility
@@ -279,7 +298,7 @@ const drawCountdown = () => {
   canvasContext.textAlign = 'left';
 };
 
-const draw = () => {
+const draw = (): void => {
   // Clear the active canvas buffer viewport
   canvasContext.fillStyle = '#111';
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
@@ -293,7 +312,7 @@ const draw = () => {
   drawStartScreen(); // Overlay renders on top of the court layout
 };
 
-const gameLoop = () => {
+const gameLoop = (): void => {
   updateLogic();
   draw();
   animationFrameId = requestAnimationFrame(gameLoop);
@@ -305,7 +324,7 @@ const gameLoop = () => {
  * ============================================================================
  */
 
-const trackMousePosition = (event) => {
+const trackMousePosition = (event: MouseEvent) => {
   const rect = canvas.getBoundingClientRect();
   const root = document.documentElement;
 
@@ -319,7 +338,7 @@ const trackMousePosition = (event) => {
  * Constrains a number between a minimum and maximum boundary limit.
  */
 const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
-const handleMouseMove = (event) => {
+const handleMouseMove = (event: MouseEvent) => {
   const mousePosition = trackMousePosition(event);
   // Calculate the raw desired position centering the paddle on the cursor
   const targetY = mousePosition.y - PADDLE_HEIGHT / 2;
@@ -344,7 +363,7 @@ const handleMouseMove = (event) => {
 /**
  * Monitors UI clicks to detect if the user clicked inside the Start Button bounding box.
  */
-const handleCanvasClick = (event) => {
+const handleCanvasClick = (event: MouseEvent) => {
   if (state.isGameStarted) return;
 
   const mousePosition = trackMousePosition(event);
@@ -392,7 +411,7 @@ const handleCanvasClick = (event) => {
 /**
  * Clean helper function to wipe scores when transitioning out of a victory overlay.
  */
-const resetMatchState = () => {
+const resetMatchState = (): void => {
   state.playerOne.score = 0;
   state.playerTwo.score = 0;
   state.winner = null;
@@ -423,7 +442,7 @@ export const hotUpdate = (oldState) => {
   init();
 };
 
-export const init = () => {
+export const init = (): void => {
   canvas = document.getElementById('gameCanvas');
   canvasContext = canvas.getContext('2d');
 
