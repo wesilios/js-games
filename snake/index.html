@@ -3,33 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Canvas Brick Breaker</title>
+    <title>Canvas Snake Arcade</title>
     <link rel="stylesheet" href="./src/style.css" />
+    <link rel="icon" type="image/x-icon" href="/public/favicon.svg" />
   </head>
   <body>
     <main class="game-container">
-      <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <canvas id="gameCanvas" width="800" height="800"></canvas>
     </main>
 
     <section class="game-details">
       <div class="hero-header">
-        <h1>Brick Breaker</h1>
-        <p class="tagline">
-          An arcade destruction classic featuring matrix arrays and dynamic bounding-box reflections.
-        </p>
+        <h1>Canvas Snake</h1>
+        <p class="tagline">A grid-locked retro arcade game engineered with discrete interval arrays.</p>
       </div>
 
       <div class="description-body">
         <h2>About the Game</h2>
         <p>
-          Clear rows of colorful bricks by deflecting a high-velocity ball using a player-controlled paddle platform.
-          Each brick target is tracked through an interactive 2D matrix array. When a bounding box collision is
-          registered, the vector reflections flip automatically and the brick entity flags are set to inactive.
+          Guide the snake through a 2D matrix grid to collect spawning food units. Every piece consumed increases your
+          score and appends a new segment to the trailing tail array. The game ends immediately if the snake collides
+          with the outer boundary walls or crashes into its own body matrix.
         </p>
         <h3>Controls</h3>
         <p>
-          Slide your <strong>Mouse Left and Right</strong> across the canvas container to steer the paddle platform.
-          Click the screen to launch the ball from the paddle and start the match!
+          Use the <strong>Arrow Keys</strong> or <strong>WASD</strong> on your keyboard to change direction. Press any
+          movement key on the start screen to begin!
         </p>
       </div>
 
@@ -37,15 +36,20 @@
         <p class="sponsor-title">Powered By</p>
         <div class="sponsor-logos">
           <div class="sponsor-item">
+            <img src="/public/javascript.svg" alt="JavaScript Logo" title="Vanilla ECMAScript Engine" />
             <span>JavaScript</span>
           </div>
           <div class="sponsor-item">
             <span>AABB Physics</span>
           </div>
+          <div class="sponsor-item">
+            <img src="/public/vite.svg" alt="Vite Dev Server Logo" title="Lightning-fast HMR Suite" />
+            <span>Vite Engine</span>
+          </div>
         </div>
       </footer>
     </section>
 
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

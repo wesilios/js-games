@@ -1,10 +1,10 @@
 import './style.css';
-import { init, hotUpdate, state } from './game.js';
+import { init, hotUpdate, state } from './game.ts';
 
 init();
 
 if (import.meta.hot) {
-  import.meta.hot.accept('./game.js', (newModule) => {
+  import.meta.hot.accept('./game.ts', (newModule) => {
     const currentState = { ...state };
     newModule.hotUpdate(currentState);
   });

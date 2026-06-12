@@ -101,6 +101,18 @@ canvas {
   gap: 30px;
 }
 
+.sponsor-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sponsor-item img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
 .sponsor-item span {
   font-weight: bold;
   font-size: 0.9rem;

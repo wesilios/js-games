@@ -1,11 +1,26 @@
-const gridSize = 20;
-let tileCount;
+const gridSize: number = 20;
+let tileCount: number;
 
-let canvasContext;
-let canvas;
-let gameLoopTimeoutId;
+let canvas: HTMLCanvasElement | null = null;
+let canvasContext: CanvasRenderingContext2D | null = null;
+let gameLoopTimeoutId: any;
 
-export let state = {
+export interface Coordinate {
+  x: number;
+  y: number;
+}
+
+export interface GameState {
+  snake: Coordinate[];
+  food: Coordinate;
+  speedX: number;
+  speedY: number;
+  score: number;
+  isGameOver: boolean;
+  isGameStarted: boolean;
+}
+
+export let state: GameState = {
   snake: [
     {
       x: 10,
@@ -20,25 +35,24 @@ export let state = {
   isGameStarted: false,
 };
 
-const spawnFood = () => {
-  state.food.x = Math.floor(Math.random() * tileCount);
-  state.food.y = Math.floor(Math.random() * tileCount);
+const spawnFood = (): void => {
+  const safetyTileCount = tileCount && !isNaN(tileCount) ? tileCount : 20;
 
-  for (let segment of state.snake) {
-    if (segment.x === state.food.x && segment.y === state.food.y) {
-      spawnFood();
-      break;
-    }
+  let foodOnSnake: boolean = true;
+  while (foodOnSnake) {
+    state.food.x = Math.floor(Math.random() * safetyTileCount);
+    state.food.y = Math.floor(Math.random() * safetyTileCount);
+    foodOnSnake = state.snake.some((segment: Coordinate) => segment.x === state.food.x && segment.y === state.food.y);
   }
 };
 
 /**
  * Steps the positional grid coordinates forward, tracking collision events.
  */
-const updateLogic = () => {
+const updateLogic = (): void => {
   if (state.isGameOver || !state.isGameStarted) return;
 
-  const head = {
+  const head: Coordinate = {
     x: state.snake[0].x + state.speedX,
     y: state.snake[0].y + state.speedY,
   };
@@ -50,8 +64,8 @@ const updateLogic = () => {
   }
 
   // Self collision check
-  for (let segment of state.snake) {
-    if (head.x === segment.x && head.y === segment.y) {
+  for (let i = 0; i < state.snake.length; i++) {
+    if (head.x === state.snake[i].x && head.y === state.snake[i].y) {
       state.isGameOver = true;
       return;
     }
@@ -64,7 +78,6 @@ const updateLogic = () => {
     state.score += 10;
     spawnFood();
   } else {
-    // If food wasn't eaten, pop the trailing tail segment off to keep normal length
     state.snake.pop();
   }
 };
@@ -75,7 +88,8 @@ const updateLogic = () => {
  * ============================================================================
  */
 
-const draw = () => {
+const draw = (): void => {
+  if (!canvas || !canvasContext) return;
   // Clear Active Viewport Background Grid
   canvasContext.fillStyle = '#111';
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
@@ -99,7 +113,8 @@ const draw = () => {
   }
 };
 
-const drawOverlay = (text, textColor) => {
+const drawOverlay = (text: string, textColor: string): void => {
+  if (!canvas || !canvasContext) return;
   canvasContext.fillStyle = 'rgba(0, 0, 0, 0.75)';
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -113,7 +128,7 @@ const drawOverlay = (text, textColor) => {
   canvasContext.textAlign = 'left';
 };
 
-const gameLoop = () => {
+const gameLoop = (): void => {
   updateLogic();
   draw();
   gameLoopTimeoutId = setTimeout(gameLoop, 100);
@@ -124,36 +139,39 @@ const gameLoop = () => {
  * INPUT CONTROLS & EVENT HANDLERS
  * ============================================================================
  */
-const handleKeyDown = (event) => {
+const handleKeyDown = (event: KeyboardEvent): void => {
   const key = event.key;
-  const goingUp = state.speedY === -1;
-  const goingDown = state.speedY === 1;
-  const goingRight = state.speedX === 1;
-  const goingLeft = state.speedX === -1;
 
-  if ((key === 'ArrowUp' || key === 'w') && !goingDown) {
+  // Determine actual physical movement direction based on the body structure
+  const hasBody = state.snake.length > 1;
+  const physicalGoingDown = hasBody ? state.snake[0].y < state.snake[1].y : false;
+  const physicalGoingUp = hasBody ? state.snake[0].y > state.snake[1].y : false;
+  const physicalGoingLeft = hasBody ? state.snake[0].x > state.snake[1].x : false;
+  const physicalGoingRight = hasBody ? state.snake[0].x < state.snake[1].x : false;
+
+  if ((key === 'ArrowUp' || key === 'w') && !physicalGoingDown) {
     state.speedX = 0;
     state.speedY = -1;
     state.isGameStarted = true;
   }
-  if ((key === 'ArrowDown' || key === 's') && !goingUp) {
+  if ((key === 'ArrowDown' || key === 's') && !physicalGoingUp) {
     state.speedX = 0;
     state.speedY = 1;
     state.isGameStarted = true;
   }
-  if ((key === 'ArrowLeft' || key === 'a') && !goingRight) {
+  if ((key === 'ArrowLeft' || key === 'a') && !physicalGoingRight) {
     state.speedX = -1;
     state.speedY = 0;
     state.isGameStarted = true;
   }
-  if ((key === 'ArrowRight' || key === 'd') && !goingLeft) {
+  if ((key === 'ArrowRight' || key === 'd') && !physicalGoingLeft) {
     state.speedX = 1;
     state.speedY = 0;
     state.isGameStarted = true;
   }
 };
 
-const handleCanvasClick = () => {
+const handleCanvasClick = (): void => {
   if (!state.isGameOver) return;
 
   // Clear and reconstruct running parameters on a reset call
@@ -166,7 +184,7 @@ const handleCanvasClick = () => {
   spawnFood();
 };
 
-export const hotUpdate = (oldState) => {
+export const hotUpdate = (oldState: GameState) => {
   if (oldState) {
     state = oldState;
   }
@@ -180,8 +198,9 @@ export const hotUpdate = (oldState) => {
   init();
 };
 
-export const init = () => {
-  canvas = document.getElementById('gameCanvas');
+export const init = (): void => {
+  canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+  if (!canvas) return;
   canvasContext = canvas.getContext('2d');
   tileCount = canvas.width / gridSize;
 

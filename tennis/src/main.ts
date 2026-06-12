@@ -1,4 +1,4 @@
-import './style.css';
+import './style.css'; // Note: Vite defaults to 'style.css', not 'styles.css'
 import { init, hotUpdate, state } from './game.js';
 
 init();
