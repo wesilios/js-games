@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas Tetris Arcade</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <link rel="icon" type="image/x-icon" href="/public/favicon.svg" />
+  </head>
+  <body>
+    <main class="game-container">
+      <canvas id="gameCanvas" width="300" heigh="600"></canvas>
+    </main>
+
+    <section class="game-details">
+      <div class="hero-header">
+        <h1>Canvas Tetris</h1>
+        <p class="tagline">A matrix-stacking retro puzzle engineered with multi-dimensional array rotations.</p>
+      </div>
+
+      <div class="description-body">
+        <h2>About the Game</h2>
+        <p>
+          Manipulate falling geometric Tetrominoes into solid horizontal rows. Completing an entire line wipes the block
+          row from the matrix grid, awarding score tiers and dropping down all remaining structures above. The game
+          terminates instantly if new shapes are blocked from spawning at the ceiling or if locked block stacks cross
+          the upper boundary edge.
+        </p>
+        <h3>Controls</h3>
+        <p>
+          Use <strong>Arrow Left / Right</strong> or <strong>A / D</strong> to shift pieces horizontally.<br />
+          Press <strong>Arrow Up</strong> or <strong>W</strong> to rotate shapes clockwise.<br />
+          Hold <strong>Arrow Down</strong> or <strong>S</strong> to trigger a fast soft drop gravity acceleration.
+        </p>
+      </div>
+
+      <footer class="tech-sponsors">
+        <p class="sponsor-title">Powered By</p>
+        <div class="sponsor-logos">
+          <div class="sponsor-item">
+            <img src="/public/javascript.svg" alt="TypeScript Logo" title="Strict Type Architecture System" />
+            <span>TypeScript</span>
+          </div>
+          <div class="sponsor-item">
+            <span>Matrix Kinematics</span>
+          </div>
+          <div class="sponsor-item">
+            <img src="/public/vite.svg" alt="Vite Dev Server Logo" title="Lightning-fast HMR Suite" />
+            <span>Vite Engine</span>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
