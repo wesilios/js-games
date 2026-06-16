@@ -1,7 +1,7 @@
 // Standard Tetris constants
-const COLS = 10;
-const ROWS = 20;
-const BLOCK_SIZE = 30;
+const COLS = 16;
+const ROWS = 22;
+const BLOCK_SIZE = 40;
 
 export type Matrix = number[][];
 export interface Coordinate {
@@ -26,7 +26,7 @@ export let state: GameState = {
   score: 0,
   lineCleared: 0,
   isGameOver: false,
-  isGameStarted: false,
+  isGameStarted: true,
   grid: Array.from(
     {
       length: ROWS,
@@ -76,9 +76,9 @@ const COLORS = {
 
 let canvas: HTMLCanvasElement | null = null;
 let canvasContext: CanvasRenderingContext2D | null = null;
-let dropCounter = 0;
-let lastTime = 0;
-let animationFrameId: number;
+let dropCounter: number = 0;
+let lastTime: number = 0;
+let animationFrameId: any;
 
 const createPiece = (): Piece => {
   const keys = Object.keys(SHAPES) as (keyof typeof SHAPES)[];
@@ -90,6 +90,66 @@ const createPiece = (): Piece => {
     color: COLORS[randomKey],
     position: { x: Math.floor((COLS - matrix[0].length) / 2), y: 0 },
   };
+};
+
+const hasCollision = (piece: Piece, grid: Matrix): boolean => {};
+
+const mergePieceToGrid = (): void => {};
+
+const clearLines = (): void => {};
+
+const dropPiece = (): void => {
+  if (!state.currentPiece || state.isGameOver || !state.isGameStarted) return;
+  console.log(state.currentPiece.position.y);
+
+  state.currentPiece.position.y++;
+
+  console.log(state.currentPiece.position.y);
+
+  if (hasCollision(state.currentPiece, state.grid)) {
+    state.currentPiece.position.y--; // Back out of the floor/block
+    mergePieceToGrid();
+    clearLines();
+
+    if (!state.isGameOver) {
+      state.currentPiece = createPiece();
+    }
+  }
+};
+
+const rotateMatrix = (matrix: Matrix): Matrix => {
+  const rowCount = matrix.length;
+  const columnCount = matrix[0].length;
+
+  const rotatedMatrix = Array.from({ length: columnCount }, () => Array(rowCount).fill(0));
+  for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+    for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+      rotatedMatrix[columnIndex][rowCount - 1 - rowIndex] = matrix[rowIndex][columnIndex];
+    }
+  }
+
+  return rotatedMatrix;
+};
+
+const playerRotate = (): void => {
+  if (!state.currentPiece) return;
+  const currentPiece = state.currentPiece;
+  const oldMatrix = currentPiece.matrix;
+  const newMatrix = rotateMatrix(currentPiece.matrix);
+  if (newMatrix) {
+    currentPiece.matrix = newMatrix;
+  }
+
+  let offset = 1;
+  const originX = currentPiece.position.x;
+  while (hasCollision(state.currentPiece, state.grid)) {
+    currentPiece.position.x += offset;
+    offset = -(offset + (offset > 0 ? 1 : -1));
+    if (Math.abs(offset) > currentPiece.matrix[0].length) {
+      currentPiece.matrix = oldMatrix;
+      currentPiece.position.x = originX;
+    }
+  }
 };
 
 const drawOverlay = (text: string, color: string): void => {
@@ -152,7 +212,20 @@ const draw = (): void => {
   drawUIOverlay();
 };
 
-const gameLoop = (time: 0): void => {
+const gameLoop = (time: number): void => {
+  const deltaTime = time - lastTime;
+  lastTime = time;
+
+  if (state.isGameStarted && !state.isGameOver) {
+    dropCounter += deltaTime;
+    console.log(dropCounter);
+    console.log(deltaTime);
+    if (dropCounter > 1000) {
+      dropPiece();
+      dropCounter = 0;
+    }
+  }
+
   draw();
   animationFrameId = requestAnimationFrame(gameLoop);
 };
@@ -165,6 +238,30 @@ const handleKeyDown = (event: KeyboardEvent): void => {
     ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'd', 'a'].includes(event.key)
   ) {
     state.isGameStarted = true;
+  }
+
+  if (!state.currentPiece) return;
+
+  switch (event.key) {
+    case 'ArrowLeft':
+    case 'a':
+      state.currentPiece.position.x--;
+      if (hasCollision(state.currentPiece, state.grid)) state.currentPiece.position.x++;
+      break;
+    case 'ArrowRight':
+    case 'd':
+      state.currentPiece.position.x++;
+      if (hasCollision(state.currentPiece, state.grid)) state.currentPiece.position.x--;
+      break;
+    case 'ArrowDown':
+    case 's':
+      dropPiece();
+      dropCounter = 0;
+      break;
+    case 'ArrowUp':
+    case 'w':
+      playerRotate();
+      break;
   }
 };
 
@@ -205,5 +302,8 @@ export const init = (): void => {
     state.currentPiece = createPiece();
   }
 
-  gameLoop();
+  dropCounter = 0;
+  lastTime = performance.now();
+
+  animationFrameId = requestAnimationFrame(gameLoop);
 };
