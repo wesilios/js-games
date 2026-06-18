@@ -40,7 +40,7 @@ Details: [README](/tennis/README.md)
 
 Details: [README](/snake/README.md)
 
-3 🧱 Canvas Brick Breaker (/brick_breaker) A classic arcade breakout game
+3. 🧱 Canvas Brick Breaker (/brick_breaker) A classic arcade breakout game
 
 - **2D Matrix Brick Layouts:** Bricks are initialized into a nested column-and-row array matrix. Each block instance
   tracks its structural boundaries and visibility parameters: `{ x, y, width, height, active: true }`.
@@ -52,6 +52,25 @@ Details: [README](/snake/README.md)
   the screen grid.
 
 Details: [README](/brick_breaker/README.md)
+
+4. Tetris
+
+The engine runs on a deterministic tick cycle divided into three distinct pipeline steps:
+
+`[ User Input / Gravity ] ──> [Collision Verification ] ──> [ Grid Modification / Render ]`
+
+1. Collision Verification Function (`hasCollision`): Before any movement or rotation is finalized on the state instance,
+   the engine projects the new coordinates onto the 2D grid matrix. If any cell containing a 1 in the piece matrix
+   overlaps with a 1 on the static board, or exceeds the `0 <= x < 10 or y < 20 bounds`, the movement is canceled.
+2. Matrix Rotation Math: Rotation rotates the index rows of a square matrix clockwise:
+   ```text
+   Rotated[c][n - 1 - r] = Matrix[r][c]
+   ```
+3. Wall-Kicking: If a rotation occurs right next to a wall or a locked block, the collision logic kicks in. The engine
+   attempts to adjust the position.x by stepping it left or right slightly to "kick" it into a valid vacant space rather
+   than failing the rotation completely.
+
+Details: [README](/tetris/README.md)
 
 ## Adding New Games
 

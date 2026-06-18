@@ -1,4 +1,4 @@
-# etris Game Requirements
+# Tetris Game Requirements
 
 ## 1. Basic Game Rules
 
