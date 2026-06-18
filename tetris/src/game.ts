@@ -22,6 +22,7 @@ export interface GameState {
   currentPiece: Piece | null;
 }
 
+// Tetromino shapes and their corresponding color palette
 export let state: GameState = {
   score: 0,
   lineCleared: 0,
@@ -80,6 +81,12 @@ let dropCounter: number = 0;
 let lastTime: number = 0;
 let animationFrameId: any;
 
+/**
+ * ============================================================================
+ * CORE MECHANICS & COLLISION LOGIC
+ * ============================================================================
+ */
+
 const createPiece = (): Piece => {
   const keys = Object.keys(SHAPES) as (keyof typeof SHAPES)[];
   const randomKey = keys[Math.floor(Math.random() * keys.length)];
@@ -92,19 +99,74 @@ const createPiece = (): Piece => {
   };
 };
 
-const hasCollision = (piece: Piece, grid: Matrix): boolean => {};
+const hasCollision = (piece: Piece, grid: Matrix): boolean => {
+  const pieceMatrix = piece.matrix;
+  const piecePosition = piece.position;
 
-const mergePieceToGrid = (): void => {};
+  for (let y = 0; y < pieceMatrix.length; y++) {
+    for (let x = 0; x < pieceMatrix[y].length; x++) {
+      if (pieceMatrix[y][x] !== 0) {
+        const nextX = piecePosition.x + x;
+        const nextY = piecePosition.y + y;
 
-const clearLines = (): void => {};
+        if (nextX < 0 || nextX >= COLS || nextY >= ROWS) {
+          return true;
+        }
+
+        if (nextY >= 0 && grid[nextY][nextX] !== 0) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+};
+
+const mergePieceToGrid = (): void => {
+  if (!state.currentPiece) return;
+  const pieceMatrix = state.currentPiece.matrix;
+  const piecePosition = state.currentPiece.position;
+
+  for (let y = 0; y < pieceMatrix.length; y++) {
+    for (let x = 0; x < pieceMatrix[y].length; x++) {
+      if (pieceMatrix[y][x] !== 0) {
+        if (piecePosition.y + y < 0) {
+          state.isGameOver = true;
+          return;
+        }
+
+        state.grid[piecePosition.y + y][piecePosition.x + x] = 1;
+      }
+    }
+  }
+};
+
+const clearLines = (): void => {
+  let lineCount = 0;
+
+  state.grid = state.grid.reduce<Matrix>((acc, row) => {
+    if (row.every((cell) => cell !== 0)) {
+      lineCount++;
+      acc.unshift(Array(COLS).fill(0));
+    } else {
+      acc.push(row);
+    }
+
+    return acc;
+  }, []);
+
+  if (lineCount > 0) {
+    const scoreMap = [0, 100, 300, 500, 800];
+    state.score += scoreMap[lineCount] || 1000;
+    state.lineCleared += lineCount;
+  }
+};
 
 const dropPiece = (): void => {
   if (!state.currentPiece || state.isGameOver || !state.isGameStarted) return;
-  console.log(state.currentPiece.position.y);
 
   state.currentPiece.position.y++;
-
-  console.log(state.currentPiece.position.y);
 
   if (hasCollision(state.currentPiece, state.grid)) {
     state.currentPiece.position.y--; // Back out of the floor/block
@@ -117,14 +179,17 @@ const dropPiece = (): void => {
   }
 };
 
+/**
+ * Rotates a 2D matrix 90 degrees clockwise safely.
+ */
 const rotateMatrix = (matrix: Matrix): Matrix => {
-  const rowCount = matrix.length;
-  const columnCount = matrix[0].length;
+  const yCount = matrix.length;
+  const xCount = matrix[0].length;
 
-  const rotatedMatrix = Array.from({ length: columnCount }, () => Array(rowCount).fill(0));
-  for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-    for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
-      rotatedMatrix[columnIndex][rowCount - 1 - rowIndex] = matrix[rowIndex][columnIndex];
+  const rotatedMatrix = Array.from({ length: xCount }, () => Array(yCount).fill(0));
+  for (let y = 0; y < yCount; y++) {
+    for (let x = 0; x < xCount; x++) {
+      rotatedMatrix[x][yCount - 1 - y] = matrix[y][x];
     }
   }
 
@@ -148,6 +213,7 @@ const playerRotate = (): void => {
     if (Math.abs(offset) > currentPiece.matrix[0].length) {
       currentPiece.matrix = oldMatrix;
       currentPiece.position.x = originX;
+      return;
     }
   }
 };
@@ -196,6 +262,23 @@ const drawCurrentPiece = (): void => {
   }
 };
 
+const drawGrid = (): void => {
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (state.grid[y][x] !== 0) {
+        canvasContext.fillStyle = '#555';
+        canvasContext.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+      }
+    }
+  }
+};
+
+/**
+ * ============================================================================
+ * ENGINE LOOPS & RENDER ENGINE
+ * ============================================================================
+ */
+
 const draw = (): void => {
   if (!canvas || !canvasContext) return;
 
@@ -204,6 +287,7 @@ const draw = (): void => {
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
   // Render Static/Locked Board Blocks
+  drawGrid();
 
   // Render Active Falling Piece
   drawCurrentPiece();
@@ -229,6 +313,12 @@ const gameLoop = (time: number): void => {
   draw();
   animationFrameId = requestAnimationFrame(gameLoop);
 };
+
+/**
+ * ============================================================================
+ * CONTROLLERS & EVENT ATTACHMENTS
+ * ============================================================================
+ */
 
 const handleKeyDown = (event: KeyboardEvent): void => {
   if (state.isGameOver) return;
@@ -271,7 +361,7 @@ const handleCanvasClick = (): void => {
   // Full game wipe/restart reset state
   state.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
   state.score = 0;
-  state.linesCleared = 0;
+  state.lineCleared = 0;
   state.isGameOver = false;
   state.isGameStarted = false;
   state.currentPiece = createPiece();
@@ -279,7 +369,7 @@ const handleCanvasClick = (): void => {
 
 export const hotUpdate = (oldState: GameState): void => {
   if (oldState) state = oldState;
-  windown.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('keydown', handleKeyDown);
   if (canvas) canvas.removeEventListener('click', handleCanvasClick);
   cancelAnimationFrame(animationFrameId);
   init();

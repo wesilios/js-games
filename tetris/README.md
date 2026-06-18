@@ -46,14 +46,77 @@ The engine runs on a deterministic tick cycle divided into three distinct pipeli
 
 `[ User Input / Gravity ] ──> [Collision Verification ] ──> [ Grid Modification / Render ]`
 
-1. Collision Verification Function (hasCollision): Before any movement or rotation is finalized on the state instance,
+1. Collision Verification Function (`hasCollision`): Before any movement or rotation is finalized on the state instance,
    the engine projects the new coordinates onto the 2D grid matrix. If any cell containing a 1 in the piece matrix
-   overlaps with a 1 on the static board, or exceeds the 0 <= x < 10 or y < 20 bounds, the movement is canceled.
+   overlaps with a 1 on the static board, or exceeds the `0 <= x < 10 or y < 20 bounds`, the movement is canceled.
 2. Matrix Rotation Math: Rotation rotates the index rows of a square matrix clockwise:
-   `$$\text{Rotated}[c][n - 1 - r] = \text{Matrix}[r][c]$$`
+   ```text
+   Rotated[c][n - 1 - r] = Matrix[r][c]
+   ```
 3. Wall-Kicking: If a rotation occurs right next to a wall or a locked block, the collision logic kicks in. The engine
    attempts to adjust the position.x by stepping it left or right slightly to "kick" it into a valid vacant space rather
    than failing the rotation completely.
+
+### 📐 Matrix Rotation Trace: L-Shape Tetromino (90° Clockwise)
+
+#### 1. Initial State
+
+- **Dimensions:** `yCount (rows) = 2`, `xCount (cols) = 3`
+- **Matrix Layout:**
+  ```text
+  Index:   col 0   col 1   col 2
+  row 0:  [  0,      0,      1  ]
+  row 1:  [  1,      1,      1  ]
+  ```
+
+---
+
+#### 2. Target Allocation Blueprint
+
+- **Rotated Dimensions:** `rotatedYCount = 3`, `rotatedXCount = 2`
+- **Transformation Formula:** `rotated[x][yCount - 1 - y] = matrix[y][x]`
+- **Empty State:**
+  ```text
+  [0, 0]
+  [0, 0]
+  [0, 0]
+  ```
+
+---
+
+#### 3. Step-by-Step Coordinate Mapping
+
+##### **Processing Row 0 (`y = 0`)**
+
+- `(y:0, x:0) => (rotatedY:0, rotatedX:1)`
+  - _Calculation:_ `rotatedX = yCount(2) - 1 - y(0) = 1`
+- `(y:0, x:1) => (rotatedY:1, rotatedX:1)`
+  - _Calculation:_ `rotatedX = yCount(2) - 1 - y(0) = 1`
+- `(y:0, x:2) => (rotatedY:2, rotatedX:1)`
+  - _Calculation:_ `rotatedX = yCount(2) - 1 - y(0) = 1`
+
+**Intermediate Matrix State:**
+
+```text
+[0, 0]
+[0, 0]
+[0, 1]
+```
+
+##### **Processing Row 0 (`y = 1`)**
+
+- `(y:1, x:0) => (rotatedY:0, rotatedX:0)`
+  - _Calculation:_ `rotatedX = yCount(2) - 1 - y(1) = 0`
+- `(y:1, x:1) => (rotatedY:1, rotatedX:0)`
+  - _Calculation:_ `rotatedX = yCount(2) - 1 - y(1) = 0`
+- `(y:1, x:2) => (rotatedY:2, rotatedX:0)`
+  - _Calculation:_ `rotatedX = yCount(2) - 1 - y(1) = 0`
+
+```text
+[1, 0]
+[1, 0]
+[1, 1]
+```
 
 ## 4. Scoring Tiers
 
