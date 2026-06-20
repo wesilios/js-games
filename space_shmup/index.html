@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas Shmup Arcade</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <link rel="icon" type="image/x-icon" href="/public/favicon.svg" />
+  </head>
+  <body>
+    <main class="game-container">
+      <canvas id="gameCanvas" width="600" height="700"></canvas>
+    </main>
+
+    <section class="game-details">
+      <div class="hero-header">
+        <h1>Canvas Shmup</h1>
+        <p class="tagline">
+          An entity-component array vector shooter engineered with high-frequency bounding frame checks.
+        </p>
+      </div>
+
+      <div class="description-body">
+        <h2>About the Game</h2>
+        <p>
+          Defend the outer orbital grid from a descending wave-based invader grid fleet. Master positioning kinematics
+          to weave between falling enemy plasma beams while managing active laser projectile arrays. Neutralizing
+          high-tier ships grants accelerated point structures, while allowing hostiles to pass the lower baseline causes
+          a game termination event.
+        </p>
+        <h3>Controls</h3>
+        <p>
+          Use <strong>Arrow Left / Right</strong> or <strong>A / D</strong> to steer your spacecraft horizontally.<br />
+          Press <strong>Spacebar</strong> to fire your point defense primary weapon.
+        </p>
+      </div>
+
+      <footer class="tech-sponsors">
+        <p class="sponsor-title">Powered By</p>
+        <div class="sponsor-logos">
+          <div class="sponsor-item">
+            <img src="/public/javascript.svg" alt="TypeScript Logo" title="Strict Type Architecture System" />
+            <span>TypeScript</span>
+          </div>
+          <div class="sponsor-item">
+            <span>AABB Vectors</span>
+          </div>
+          <div class="sponsor-item">
+            <img src="/public/vite.svg" alt="Vite Dev Server Logo" title="Lightning-fast HMR Suite" />
+            <span>Vite Engine</span>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
