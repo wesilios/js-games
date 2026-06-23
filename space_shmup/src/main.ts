@@ -1,11 +1,11 @@
-import { init, state, hotUpdate } from './game.ts';
+import { game } from './game.ts';
 
-init();
+game.init();
 
 if (import.meta.hot) {
   (import.meta.hot.accept('./game.ts'),
     (newModule) => {
-      const currentState = { ...state };
+      const currentState = { ...game.state };
       newModule.hotUpdate(currentState);
     });
 }

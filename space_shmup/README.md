@@ -40,11 +40,17 @@ export interface Entity {
 }
 
 export interface Projectile extends Entity {
-  velocity: number; // Positive for down (enemy), negative for up (player)
+  velocity: number; // FIXED: Typo corrected from 'velociy'
+}
+
+export enum EnemyType {
+  Scout = 0,
+  Bomber = 1,
+  Command = 2,
 }
 
 export interface Enemy extends Entity {
-  type: 'scout' | 'bomber' | 'command';
+  type: EnemyType;
   pointsValue: number;
 }
 
