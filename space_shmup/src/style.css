@@ -1,0 +1,173 @@
+:root {
+  --bg-dark: #07070a; /* Deep space black */
+  --panel-bg: #111116; /* Clean sleek cockpit dark charcoal */
+  --border-light: #222230; /* Muted structural framework line */
+  --text-main: #f0f0f5; /* Crisp text readout */
+  --text-muted: #707085; /* Telemetry secondary readouts */
+  --accent-green: #39ff14; /* Neon lime green for your player hull */
+  --accent-orange: #ff5500; /* Plasma weapon orange explosions */
+  --accent-cyan: #00f0f0; /* Shielding / high-velocity laser beams */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  gap: 40px;
+}
+
+/* ============================================================================
+ * ENGINE LAYOUT CONTAINERS
+ * ============================================================================
+ */
+
+.game-container {
+  flex: 0 0 auto;
+  background-color: var(--panel-bg);
+  border: 3px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(0, 240, 240, 0.03); /* Soft cosmic accent shadow */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#gameCanvas {
+  display: block;
+  background-color: #050508; /* Ultra deep viewport backdrop */
+  border-radius: 6px;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.95);
+}
+
+.game-details {
+  flex: 1;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ============================================================================
+ * ARCADIC TYPOGRAPHY & HEADERS
+ * ============================================================================
+ */
+
+.hero-header h1 {
+  font-size: 36px;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  background: linear-gradient(45deg, var(--text-main), var(--text-muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-header .tagline {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.description-body h2 {
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  color: var(--accent-cyan); /* Swapped to glowing cyan headers */
+}
+
+.description-body h3 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.description-body p {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.description-body strong {
+  color: var(--text-main);
+}
+
+/* ============================================================================
+ * VITE / TECH FOUNTAIN FOOTER
+ * ============================================================================
+ */
+
+.tech-sponsors {
+  border-top: 1px dashed var(--border-light);
+  padding-top: 20px;
+}
+
+.sponsor-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.sponsor-logos {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.sponsor-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-light);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.sponsor-item img {
+  width: 16px;
+  height: 16px;
+}
+
+.sponsor-item span {
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+/* ============================================================================
+ * RESPONSIVE ADAPTIVE BREAKPOINTS
+ * ============================================================================
+ */
+
+@media (max-width: 900px) {
+  body {
+    flex-direction: column;
+    padding: 20px;
+    gap: 30px;
+    overflow-y: auto;
+  }
+
+  .game-details {
+    max-width: 100%;
+  }
+}
