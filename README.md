@@ -72,6 +72,29 @@ The engine runs on a deterministic tick cycle divided into three distinct pipeli
 
 Details: [README](/tetris/README.md)
 
+5. Space Shmup
+
+Defend the outer orbital grid from a descending wave-based invader grid fleet.
+
+- A clean vertical scrolling layout running on a locked high-definition 2D viewport canvas.
+- The Player Ship: Positioned at the lower baseline of the screen, restricted to horizontal left/right movement across
+  the board.
+- The Invader Grid Fleet: A multi-layered row array of hostile alien ships positioned at the top of the screen. The
+  fleet slides collectively side-to-side; when the leading side touches a boundary margin, the entire row steps downward
+  toward the player and reverses direction.
+- Weapons System: \* The player can spawn fast, upward-moving vertical projectile elements by pressing the spacebar.
+  - The enemy ships randomly trigger downward-moving plasma beams at varying interval steps.
+- Collision Rules: \* Player Projectile -> Enemy Ship: Destroys the alien block, triggers a point reward, and clears the
+  matching element out of the active rendering pool.
+  - Enemy Projectile / Enemy Body $\rightarrow$ Player Ship: Triggers an immediate structural hull destruction life
+    deduction event.
+- Win/Loss Conditions:
+  - Victory: Successfully neutralizing all enemy objects across the nested arrays.
+  - Game Over: Remaining hull life pools reach zero, or the descending enemy grid positions slip below the player's
+    firing threshold baseline.
+
+Details: [README](/space_shmup/README.md)
+
 ## Adding New Games
 
 To add a new game to this collection:
