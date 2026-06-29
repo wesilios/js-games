@@ -1,71 +1,253 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { game, ENEMY_ROW_COUNT, ENEMY_COL_COUNT, ENEMY_WIDTH, ENEMY_HEIGHT } from './game';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { game, keysPressed } from './game';
 import { EnemyType } from './interfaces/schemes';
+import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  PLAYER_SPEED,
+  PROJECTILE_SPEED,
+  ENEMY_ROW_COUNT,
+  ENEMY_COL_COUNT,
+} from './constant';
+import * as helper from './helper';
 
-describe('Space Shmup Logic Suites', () => {
+// Spy on rendering helper functions to prevent runtime DOM errors
+vi.mock('./helper', () => ({
+  renderRect: vi.fn(),
+  drawScreenOverlay: vi.fn(),
+}));
+
+describe('Space Shmup Complete Core Engine Suite', () => {
   beforeEach(() => {
+    // Reset state configuration metrics cleanly to baseline defaults before every pass
     game.state.score = 0;
     game.state.lives = 3;
+    game.state.isGameOver = false;
+    game.state.isGameStarted = false;
+    game.state.player.position.x = CANVAS_WIDTH / 2 - 25;
+    game.state.player.position.y = CANVAS_HEIGHT - 30 - 10;
+    game.state.player.active = true;
     game.state.enemies = [];
     game.state.projectiles = [];
-    game.state.isGameOver = false;
+    game.enemySpeedX = 1;
+    game.enemyDirectionX = 1;
+
+    // Clear tracking map inputs keys
+    Object.keys(keysPressed).forEach((key) => delete keysPressed[key]);
+    vi.clearAllMocks();
   });
 
-  it('enemyTypeLogic() should assign Scout type to row 0', () => {
-    expect(game.enemyTypeLogic(0)).toBe(EnemyType.Scout);
+  // ============================================================================
+  // PURE LOGIC METRIC MATRIX TESTS
+  // ============================================================================
+  describe('Static Lookups & Pure Mechanics Logic', () => {
+    it('should evaluate AABB intersections correctly across footprints', () => {
+      const rect1 = { position: { x: 10, y: 10 }, width: 20, height: 20, active: true };
+      const rect2 = { position: { x: 25, y: 25 }, width: 20, height: 20, active: true };
+      const rect3 = { position: { x: 100, y: 100 }, width: 20, height: 20, active: true };
+
+      expect(game.checkCollision(rect1, rect2)).toBe(true);
+      expect(game.checkCollision(rect1, rect3)).toBe(false);
+    });
+
+    it('should accurately resolve score weight distributions per row', () => {
+      expect(game.enemyPointValue(0)).toBe(400);
+      expect(game.enemyPointValue(1)).toBe(300);
+      expect(game.enemyPointValue(3)).toBe(100);
+    });
+
+    it('should assign correct variant types to grid index ranks', () => {
+      expect(game.enemyTypeLogic(0)).toBe(EnemyType.Scout);
+      expect(game.enemyTypeLogic(2)).toBe(EnemyType.Bomber);
+      expect(game.enemyTypeLogic(3)).toBe(EnemyType.Command);
+    });
   });
 
-  it('enemyTypeLogic() should assign Bomber type to rows 1 and 2', () => {
-    expect(game.enemyTypeLogic(1)).toBe(EnemyType.Bomber);
-    expect(game.enemyTypeLogic(2)).toBe(EnemyType.Bomber);
+  // ============================================================================
+  // GRID SPATIALLY BALANCED GENERATION TESTS
+  // ============================================================================
+  describe('Fleet Grid Spawning Mechanics', () => {
+    it('should build a perfect row-column matrix array block layout', () => {
+      game.spawnEnemyFleet();
+      const expectedTotal = ENEMY_ROW_COUNT * ENEMY_COL_COUNT;
+
+      expect(game.state.enemies.length).toBe(expectedTotal);
+      expect(game.state.enemies[0].position.x).toBe(50);
+      expect(game.state.enemies[0].position.y).toBe(60);
+    });
   });
 
-  it('enemyTypeLogic() should assign Command type to rows higher than 2', () => {
-    expect(game.enemyTypeLogic(3)).toBe(EnemyType.Command);
+  // ============================================================================
+  // WEAPONS SYSTEM SYSTEM OPERATION TESTS
+  // ============================================================================
+  describe('Player Offensive Fire Array', () => {
+    it('should spawn a tracking laser vector centered above player node', () => {
+      game.state.isGameStarted = true;
+      game.firePlayerLaser();
+
+      expect(game.state.projectiles.length).toBe(1);
+
+      const laser = game.state.projectiles[0];
+      expect(laser.velocity).toBe(-PROJECTILE_SPEED);
+      expect(laser.active).toBe(true);
+    });
+
+    it('should enforce ammo limit thresholds to block weapon spamming', () => {
+      game.state.isGameStarted = true;
+
+      // Attempt to fire 5 lasers in rapid succession
+      game.firePlayerLaser();
+      game.firePlayerLaser();
+      game.firePlayerLaser();
+      game.firePlayerLaser();
+      game.firePlayerLaser();
+
+      expect(game.state.projectiles.length).toBe(3); // Hard-capped throttled line
+    });
   });
 
-  it('enemyPointValue() should scale points exponentially based on high rows', () => {
-    expect(game.enemyPointValue(0)).toBe(400);
-    expect(game.enemyPointValue(1)).toBe(300);
-    expect(game.enemyPointValue(3)).toBe(100);
+  // ============================================================================
+  // PHYSICS KINEMATICS & COLLISION DYNAMICS
+  // ============================================================================
+  describe('Core Physics Translators', () => {
+    it('should stay idle if game flag indicators are marked inactive', () => {
+      game.state.isGameStarted = false;
+      keysPressed['ArrowLeft'] = true;
+
+      game.updatePhysics();
+      expect(game.state.player.position.x).toBe(CANVAS_WIDTH / 2 - 25);
+    });
+
+    it('should step player left position tracking bounded by edge constraints', () => {
+      game.state.isGameStarted = true;
+      keysPressed['ArrowLeft'] = true;
+
+      game.updatePhysics();
+      expect(game.state.player.position.x).toBe(CANVAS_WIDTH / 2 - 25 - PLAYER_SPEED);
+
+      // Force boundary clip override to test edge constraint clamping
+      game.state.player.position.x = 2;
+      game.updatePhysics();
+      expect(game.state.player.position.x).toBe(0);
+    });
+
+    it('should step player right position tracking bounded by edge constraints', () => {
+      game.state.isGameStarted = true;
+      keysPressed['d'] = true;
+
+      game.updatePhysics();
+      expect(game.state.player.position.x).toBe(CANVAS_WIDTH / 2 - 25 + PLAYER_SPEED);
+    });
+
+    it('should drop fleet down and invert path headings upon hitting frame margins', () => {
+      game.state.isGameStarted = true;
+      game.state.enemies.push({
+        position: { x: CANVAS_WIDTH - 20, y: 100 },
+        width: 40,
+        height: 30,
+        type: EnemyType.Scout,
+        pointsValue: 100,
+        active: true,
+      });
+
+      game.updatePhysics();
+
+      expect(game.enemyDirectionX).toBe(-1); // Heading vector flipped
+      expect(game.state.enemies[0].position.y).toBe(100 + game.enemyDropY); // Dropped down
+    });
+
+    it('should compute intersection impacts, adjust metrics, and sweep spent arrays', () => {
+      game.state.isGameStarted = false;
+      game.state.isGameOver = false;
+
+      game.state.enemies.push({
+        position: { x: 100, y: 100 },
+        width: 40,
+        height: 30,
+        type: EnemyType.Scout,
+        pointsValue: 400,
+        active: true,
+      });
+      game.state.projectiles.push({
+        position: { x: 110, y: 105 },
+        width: 4,
+        height: 15,
+        velocity: -PROJECTILE_SPEED,
+        active: true,
+      });
+
+      game.state.isGameStarted = true;
+      game.updatePhysics();
+
+      game.state.isGameStarted = true;
+
+      expect(game.state.score).toBe(400);
+      expect(game.state.projectiles.length).toBe(1);
+      expect(game.state.enemies.length).toBe(32);
+    });
+
+    it('should flag a Game Over state if invaders penetrate defensive margins', () => {
+      game.state.isGameStarted = true;
+      game.state.enemies.push({
+        position: { x: CANVAS_WIDTH - 10, y: CANVAS_HEIGHT - 60 },
+        width: 40,
+        height: 30,
+        type: EnemyType.Scout,
+        pointsValue: 100,
+        active: true,
+      });
+
+      game.updatePhysics();
+      expect(game.state.isGameOver).toBe(true);
+    });
   });
 
-  const entityA = { position: { x: 10, y: 10 }, width: ENEMY_WIDTH, height: ENEMY_HEIGHT, active: true };
-  it('checkCollision() should return true when entities structurally overlap', () => {
-    const entityB = { position: { x: 20, y: 20 }, width: ENEMY_WIDTH, height: ENEMY_HEIGHT, active: true };
-    const entityC = { position: { x: 10, y: 25 }, width: 20, height: 90, active: true };
+  // ============================================================================
+  // PRESENTATION PIPELINES & USER INPUT
+  // ============================================================================
+  describe('UI Presenter & User Inputs Lifecycle', () => {
+    it('should prevent rendering passes if canvas drawing contexts are missing', () => {
+      game.canvasContext = null;
+      expect(() => game.render()).not.toThrow();
+    });
 
-    expect(game.checkCollision(entityA, entityB)).toBe(true);
-    expect(game.checkCollision(entityA, entityC)).toBe(true);
-  });
+    it('should call rendering operations when canvas elements are assigned', () => {
+      const mockCtx = {
+        fillStyle: '',
+        font: '',
+        fillRect: vi.fn(),
+        fillText: vi.fn(),
+      } as unknown as CanvasRenderingContext2D;
 
-  it('checkCollision() should return false when entities are completely separate', () => {
-    const entityA = { position: { x: 10, y: 10 }, width: 20, height: 20, active: true };
-    const entityB = { position: { x: 50, y: 50 }, width: 20, height: 20, active: true };
+      game.canvasContext = mockCtx;
+      game.state.isGameStarted = true;
+      game.state.enemies.push({ position: { x: 1, y: 1 }, width: 1, height: 1, type: 1, pointsValue: 1, active: true });
 
-    expect(game.checkCollision(entityA, entityB)).toBe(false);
-  });
+      game.render();
 
-  it('should populate the game state with a perfect fleet grid arrangement', () => {
-    game.spawnEnemyFleet();
-    const expectedTotalEnemies = ENEMY_ROW_COUNT * ENEMY_COL_COUNT;
-    expect(game.state.enemies.length).toBe(expectedTotalEnemies);
-  });
+      expect(mockCtx.fillRect).toHaveBeenCalled();
+      expect(mockCtx.fillText).toHaveBeenCalled();
+      expect(helper.renderRect).toHaveBeenCalled();
+    });
 
-  it('should guarantee that all spawned entites are set to active', () => {
-    game.spawnEnemyFleet();
-    const allActive = game.state.enemies.every((enemy) => enemy.active === true);
-    expect(allActive).toBe(true);
-  });
+    it('should start game states cleanly upon first valid movement input stroke', () => {
+      const mockEvent = { key: 'ArrowRight', preventDefault: vi.fn() } as unknown as KeyboardEvent;
 
-  it("should guarantee that all enemy's types are spawned", () => {
-    game.spawnEnemyFleet();
-    const hasScout = game.state.enemies.some((enemy) => enemy.type === EnemyType.Scout);
-    const hasBomber = game.state.enemies.some((enemy) => enemy.type === EnemyType.Bomber);
-    const hasCommand = game.state.enemies.some((enemy) => enemy.type === EnemyType.Command);
+      game.handleKeyDown(mockEvent);
 
-    expect(hasScout).toBe(true);
-    expect(hasBomber).toBe(true);
-    expect(hasCommand).toBe(true);
+      expect(game.state.isGameStarted).toBe(true);
+      expect(keysPressed['ArrowRight']).toBe(true);
+    });
+
+    it('should flush configurations completely down to initial settings on reboot', () => {
+      game.state.score = 5000;
+      game.state.isGameOver = true;
+
+      game.resetFullGameSession();
+
+      expect(game.state.score).toBe(0);
+      expect(game.state.isGameOver).toBe(false);
+      expect(game.state.enemies.length).toBe(ENEMY_ROW_COUNT * ENEMY_COL_COUNT);
+    });
   });
 });

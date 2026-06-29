@@ -19,6 +19,31 @@
   - Game Over: Remaining hull life pools reach zero, or the descending enemy grid positions slip below the player's
     firing threshold baseline.
 
+```text
+(0,0) ------------------------ CANVAS_WIDTH: 600px ------------------------
+      |                                                                   |
+      |   [ HUD telemetry: SCORE ]                         [ LIVES ]      |
+      |                                                                   |
+      |      +------+  +------+  +------+  +------+  +------+  +------+   |
+      |      | Scout|  | Scout|  | Scout|  | Scout|  | Scout|  | Scout|   | <-- Row 0 (400 pts)
+      |      +------+  +------+  +------+  +------+  +------+  +------+   |
+      |      +------+  +------+  +------+  +------+  +------+  +------+   |
+      |      |Bomber|  |Bomber|  |Bomber|  |Bomber|  |Bomber|  |Bomber|   | <-- Rows 1-2 (300 pts)
+      |      +------+  +------+  +------+  +------+  +------+  +------+   |
+      |                                                                   |
+      |                                  ||                               |
+      |                                  || <-- Player Projectile         |
+      |                                  \/     (Velocity Y: -7)          |
+      |                                                                   |
+      |                                                                   |
+      |                                                                   |
+      |                     +-----------------------+                     |
+      |                     |   Player Defense Ship |                     | <-- Baseline Array
+      |                     +-----------------------+                     |
+      |                                                                   |
+(0,700) ------------------------------------------------------------------- (600,700)
+```
+
 ## System Engineering Analysis
 
 ### State Blueprint & Data Schema
